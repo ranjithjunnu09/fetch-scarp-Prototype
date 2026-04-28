@@ -93,21 +93,7 @@ trafilatura → content extraction
 python-dotenv → environment variables
 lxml → fast parsing backend
 
-- Installation
-1. Clone Repository
-git clone https://github.com/your-username/web-retrieval-prototype.git
-cd web-retrieval-prototype
-2. Create Virtual Environment
-python -m venv venv
 
-Activate:
-
-Windows:
-venv\Scripts\activate
-Mac/Linux:
-source venv/bin/activate
-3. Install Dependencies
-pip install -r requirements.txt
 
 4. Setup Environment Variables
 Create .env file:
@@ -119,7 +105,7 @@ POST /search
 Request Body:
 {
   "query": "AI agents future",
-  "num_results": 5
+  "num_results": 10
 }
 Response:
 {
