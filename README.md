@@ -1,116 +1,143 @@
-﻿# Web Retrieval Pipeline
+﻿# Hybrid RAG AI Assistant
 
-A Python project that performs web search, fetches page HTML, extracts readable text, and saves structured results to JSON.
+A Python-based hybrid retrieval system combining document ingest, web search, and LLM-driven response generation.
 
-## Overview
+## Project Summary
 
-This project demonstrates a retrieval pipeline with object-oriented design. It uses a search engine implementation, web fetcher, content extractor, and JSON storage component.
+This repository implements a hybrid retrieval architecture with:
+- A FastAPI backend for file upload, chat, and document management
+- A Streamlit front-end for interacting with the assistant
+- A document pipeline that indexes PDFs, text, markdown, CSV, JSON, and DOCX
+- A web scraping pipeline that uses Serper search and extractive HTML parsing
+- A Gemini-based LLM orchestration layer for intent routing and answer generation
 
-The pipeline:
-1. Queries the web using `SerperSearchEngine`
-2. Fetches each search result page via `WebFetcher`
-3. Extracts readable text content via `ContentExtractor`
-4. Saves the final results to `output/results.json`
+## Architecture Overview
 
-## Features
+### Backend (`app/`)
 
-- Search using the Serper API
-- Fetch web pages with user-agent headers
-- Extract main article text from HTML
-- Save structured output as JSON
-- Object-oriented design using classes and abstraction
-- Inheritance via abstract base classes for search and extraction
-- Component composition in the retrieval pipeline
+- `app/main.py` — FastAPI application exposing API endpoints:
+  - `/health` — backend health and status
+  - `/upload` — file upload and document indexing
+  - `/chat` — hybrid Q&A endpoint
+  - `/documents` — list active indexed documents
+  - `/documents` (DELETE) — clear indexed documents
 
-## Prerequisites
+- `app/ai_engine.py` — core AI orchestration:
+  - intent classification
+  - document retrieval
+  - web retrieval
+  - hybrid fusion of document + web content
+  - answer generation via Gemini LLM prompts
 
-- Python 3.11+ (recommended)
-- A valid Serper API key
+- `app/retrieval.py` — vector search and document processing:
+  - text splitting and chunking
+  - embedding creation with `sentence-transformers`
+  - FAISS-based vector store indexing
+  - document retrieval for PDFs, text, markdown, CSV, JSON, DOCX
+  - web document retrieval and fusion
 
-## Setup
+- `app/scraping.py` — web retrieval and content extraction:
+  - Serper search for live query results
+  - async HTML fetching with `aiohttp`
+  - extraction using `trafilatura` and BeautifulSoup
+  - quality scoring and content validation
 
-1. Clone or copy the repository files.
-2. Create and activate a Python virtual environment:
+### Front-end
+
+- `streamlit_app.py` — Streamlit user interface:
+  - checks backend health
+  - displays chat history and sources
+  - supports file upload status and document state
+  - connects to backend endpoints
+
+### Support files
+
+- `requirements.txt` — Python package dependencies
+- `test.py` — Gemini API key validation test
+- `data/` — storage for uploaded documents and vector indexes
+- `output/` — generated results and output artifacts
+
+## Key Features
+
+- Hybrid retrieval: combines document knowledge with live web data
+- Multi-format document ingestion: PDF, text, markdown, CSV, JSON, DOCX
+- Embedding-based search using FAISS
+- Intent-aware query routing: general, RAG-only, hybrid, summary, comparison
+- Streamlit UI for fast prototyping and interactive testing
+
+## Supported File Types
+
+- `.pdf`
+- `.txt`
+- `.md`
+- `.csv`
+- `.json`
+- `.docx`
+
+## Installation
+
+1. Create a Python virtual environment:
 
 ```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
 
-3. Install dependencies:
+2. Install dependencies:
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-4. Create a `.env` file in the project root with your Serper API key:
+3. Create a `.env` file in the repository root with the following keys:
 
 ```text
+GEMINI_API_KEY=your_gemini_api_key_here
 SERPER_API_KEY=your_serper_api_key_here
 ```
 
-## File Structure
+4. Ensure the `data/` and `output/` directories exist. They are created automatically when needed.
 
-- `main.py` — main application file that builds and runs the retrieval pipeline
-- `requirements.txt` — Python dependencies required by the project
-- `output/results.json` — generated output file containing search results and extracted content
-- `venv/` — local Python virtual environment (not committed in git)
+## Running the System
 
-## How It Works
-
-### `main.py`
-
-The main script is built from several object-oriented components:
-
-- `Document` — model representing a result with `url`, `title`, `snippet`, and `content`
-- `BaseSearchEngine` / `SerperSearchEngine` — abstract base class and concrete search implementation
-- `WebFetcher` — downloads HTML pages using `requests`
-- `BaseExtractor` / `ContentExtractor` — abstract extraction interface with concrete logic and fallback behavior
-- `JSONStorage` — writes final output to `output/results.json`
-- `RetrievalPipeline` — combines all components and executes the workflow
-
-### Execution Flow
-
-1. User enters a search query.
-2. `SerperSearchEngine.search()` retrieves top search results.
-3. `WebFetcher.fetch()` downloads each page.
-4. `ContentExtractor.extract()` parses and extracts text.
-5. Results are saved to `output/results.json`.
-
-## Usage
-
-Run the script from the project root:
+### Start the backend API
 
 ```powershell
-python main.py
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Then enter your search query when prompted.
+### Start the Streamlit front-end
 
-Example:
-
-```text
-Enter your query: Tell me about agentic ai
+```powershell
+streamlit run streamlit_app.py
 ```
 
-After completion, check `output/results.json` for the saved results.
+Then open the Streamlit URL in your browser.
 
-## Output Format
+## Quick Usage
 
-The output JSON includes:
+1. Upload documents via the front-end.
+2. Use `/upload` to ingest the file and build a FAISS index.
+3. Ask questions in the chat interface.
+4. The assistant routes queries to one of:
+   - general web search
+   - document-only retrieval
+   - hybrid document + web reasoning
+   - summary or comparison mode
 
-- `query` — the search input
-- `results` — list of extracted documents
-  - `url`
-  - `title`
-  - `snippet`
-  - `content`
+## Example Backend Commands
 
-## Dependencies
+- Health check:
+  - `GET http://127.0.0.1:8000/health`
+- List documents:
+  - `GET http://127.0.0.1:8000/documents`
+- Clear document index:
+  - `DELETE http://127.0.0.1:8000/documents`
 
-- `requests` — HTTP requests for API calls and page downloads
-- `beautifulsoup4` — HTML parsing fallback
-- `python-dotenv` — loads environment variables from `.env`
-- `lxml` — HTML parser for BeautifulSoup
-- `trafilatura` — content extraction from HTML
+## Development Notes
+
+- The document index is rebuilt for each uploaded file.
+- FAISS index data is stored in `data/faiss_index`.
+- Active documents are tracked via `RetrievalEngine.active_documents`.
+- The assistant uses Gemini (`google-genai`) for both intent routing and final answer generation.
 

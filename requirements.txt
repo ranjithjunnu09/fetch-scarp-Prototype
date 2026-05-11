@@ -1,6 +1,33 @@
+fastapi
+uvicorn[standard]
 requests
 beautifulsoup4
 python-dotenv
-aiohttp
-lxml
 trafilatura
+lxml
+aiohttp
+aiofiles
+
+# LangChain
+langchain
+langchain-community
+langchain-huggingface
+langchain-text-splitters
+
+# Embeddings & Vector Store
+sentence-transformers
+faiss-cpu
+scikit-learn
+
+# Document Parsers
+pypdf
+python-docx
+
+# LLM
+google-genai
+
+# API & Multipart
+python-multipart
+
+# Frontend
+streamlit
